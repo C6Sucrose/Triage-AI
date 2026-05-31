@@ -1,7 +1,7 @@
 [project]
 name = "triage-ai"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "An open-source, asynchronous B2B workflow automation platform that triages customer support emails using LangGraph, RAG, and external ticketing APIs"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []

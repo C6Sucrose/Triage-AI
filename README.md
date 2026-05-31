@@ -20,11 +20,11 @@ Triage AI is designed to solve the mundane task of manually setting up support t
 Built with a focus on **Bring Your Own Cloud (BYOC)**, it is fully containerized and ready for on-premise or cloud deployment.
 
 ### ✨ Key Features
-* **Asynchronous Webhook Ingestion:** Safely catches incoming emails from providers like Resend/SendGrid without freezing or timing out.
-* **Multi-Agent AI Routing:** Utilizes **LangGraph** to classify issues (Bug, Billing, General) and route them to the correct retrieval pipeline.
-* **Multi-Tenant Vector RAG:** Embeds company PDFs into **ChromaDB**, ensuring responses are grounded in strict company policy and protected by tenant-level filtering.
+* **Asynchronous Webhook Ingestion:** catches incoming emails from providers like Resend/SendGrid without freezing or timing out.
+* **Multi-Agent AI Routing:** Utilizes LangGraph to classify issues (Bug, Billing, General) and route them to the correct retrieval pipeline.
+* **Multi-Tenant Vector RAG:** Embeds company PDFs into ChromaDB, ensuring responses are grounded in company policy and protected by filtering.
 * **Action Execution:** Automatically drafts responses and pushes them directly to engineering boards (Linear/Trello) via REST/GraphQL APIs.
-* **Secure by Default:** Built on **Supabase** with strict Row-Level Security (RLS) and **Clerk** authentication.
+* **Secure:** Built on Supabase with strict Row level security and Clerk authentication.
 
 ---
 
