@@ -11,11 +11,11 @@
 
 ### 🚀 See it in Action
 
-> *[Insert a 5-second GIF here showing a dummy email being sent, and the Trello/Linear card magically appearing with a drafted response]*
+> *[quick 5-second GIF here showing a dummy email being sent, and the Trello/Linear card appearing with a drafted response here later]*
 
 ## 📖 Overview
 
-Triage AI is designed to solve the "Enterprise Data Chasm." It allows companies to autonomously route, classify, and draft responses to customer support tickets using their own private knowledge base, without relying on thin wrappers or exposing data to public models. 
+Triage AI is designed to solve the mundane task of manually setting up support tickets for further handling. It allows companies to automatically route, classify, and draft responses to customer support tickets using their own private knowledge base, without relying on wrappers or exposing data to public models. 
 
 Built with a focus on **Bring Your Own Cloud (BYOC)**, it is fully containerized and ready for on-premise or cloud deployment.
 
@@ -30,7 +30,7 @@ Built with a focus on **Bring Your Own Cloud (BYOC)**, it is fully containerized
 
 ## 🏗️ Architecture
 
-> *[Insert an Excalidraw or Mermaid.js architecture diagram here showing the flow from Webhook -> FastAPI -> LangGraph -> ChromaDB -> Trello]*
+> *[Will insert flow diagram later here]*
 
 ### Tech Stack
 * **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/UI
@@ -55,3 +55,81 @@ Get the entire stack (UI, API, and Vector DB) running locally in under 5 minutes
 ```bash
 git clone [https://github.com/yourusername/triage-ai.git](https://github.com/yourusername/triage-ai.git)
 cd triage-ai
+
+```
+
+### 2. Configure Environment Variables
+
+Copy the example environment files for both the frontend and backend.
+
+```bash
+cp frontend/.env.example frontend/.env.local
+cp backend/.env.example backend/.env
+
+```
+
+Fill in the required keys (see the [Environment Variables](#%EF%B8%8F-environment-variables) section below).
+
+### 3. Spin up the Containers
+
+```bash
+docker-compose up --build
+
+```
+
+* **Frontend Dashboard:** `http://localhost:3000`
+* **FastAPI Swagger Docs:** `http://localhost:8080/docs`
+* **ChromaDB Instance:** `http://localhost:8000`
+
+---
+
+## ⚙️ Environment Variables
+
+### Backend (`backend/.env`)
+
+| Variable | Description |
+| --- | --- |
+| `OPENAI_API_KEY` | Your OpenAI API key for LLM and Embeddings. |
+| `SUPABASE_URL` | Your Supabase Project URL. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key (Keep this secret!). |
+| `TRELLO_API_KEY` | (Optional) API Key for Trello integration. |
+| `TRELLO_TOKEN` | (Optional) Token for Trello integration. |
+| `LANGCHAIN_TRACING_V2` | Set to `true` to enable LangSmith observability. |
+| `LANGCHAIN_API_KEY` | Your LangSmith API Key. |
+
+### Frontend (`frontend/.env.local`)
+
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Auth Frontend Key. |
+| `CLERK_SECRET_KEY` | Clerk Auth Backend Secret. |
+| `NEXT_PUBLIC_API_URL` | Set to `http://localhost:8080/api/v1` locally. |
+
+---
+
+## 🗺️ Roadmap (V1)
+
+* [x] Base PostgreSQL/Supabase Schema Initialization
+* [x] Next.js Dashboard & Clerk Auth Integration
+* [ ] FastAPI Webhook Ingestion & Pydantic Validation
+* [ ] PyPDF2 Extraction & ChromaDB Vectorization
+* [ ] LangGraph State Machine (Categorizer, Retriever, Drafter)
+* [ ] Linear/Trello API Action Execution
+
+---
+
+## 🤝 Contributing
+
+Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Review the [CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
