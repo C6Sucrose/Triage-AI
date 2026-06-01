@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # 1. The Next.js Frontend
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+
+  # 2. The FastAPI Backend
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - chromadb
+    environment:
+      - CHROMA_DB_URL=http://chromadb:8000
+
+  # 3. The ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+
+# Define persistent storage so your AI vectors survive computer restarts
+volumes:
+  chroma_data:
