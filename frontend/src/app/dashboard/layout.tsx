@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 
 export default function DashboardLayout({
   children,
@@ -27,6 +28,13 @@ export default function DashboardLayout({
             Knowledge Base
           </Link>
         </nav>
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-slate-200">
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </aside>
 
       {/* Main Content Area */}
