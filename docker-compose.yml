@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    env_file:                      
+      - ./frontend/.env.local
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080
 
