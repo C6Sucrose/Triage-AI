@@ -4,4 +4,12 @@ version = "1.0.0"
 description = "An open-source, asynchronous B2B workflow automation platform that triages customer support emails using LangGraph, RAG, and external ticketing APIs"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "email-validator==2.2.0",
+    "fastapi==0.136.3",
+    "pydantic==2.13.2",
+    "pypdf==5.6.0",
+    "python-dotenv==1.1.1",
+    "supabase==2.15.0",
+    "uvicorn==0.48.0",
+]
