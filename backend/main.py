@@ -17,7 +17,7 @@ logger = logging.getLogger("triage.backend")
 
 app = FastAPI(title="Triage AI Backend")
 
-# ── Security ──────────────────────────────────────────────────────────────────
+# ── Security ──────
 
 api_key_header = APIKeyHeader(name="X-API-Key")
 
@@ -31,7 +31,7 @@ def verify_api_key(api_key: str = Depends(api_key_header)) -> str:
     return api_key
 
 
-# ── Schemas ───────────────────────────────────────────────────────────────────
+# ── Schemas ─────────────────────────
 
 class InboundEmailPayload(BaseModel):
     tenant_id: str = Field(..., description="Clerk user ID this email belongs to")
@@ -40,7 +40,7 @@ class InboundEmailPayload(BaseModel):
     body_text: str
 
 
-# ── Background task ───────────────────────────────────────────────────────────
+# ── Background task ───────────
 
 def _get_supabase_client() -> Client:
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
@@ -62,7 +62,7 @@ def process_inbound_email(payload: InboundEmailPayload) -> None:
             .execute()
         )
 
-        # Gracefully handle the case where the user does not exist
+        # handle the case where the user does not exist
         if not user_result.data:
             logger.warning(
                 "No user found for clerk_id=%s. Dropping payload.", payload.tenant_id,
@@ -98,7 +98,7 @@ def process_inbound_email(payload: InboundEmailPayload) -> None:
         )
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+# ── Routes ────────────
 
 @app.get("/")
 def read_root() -> dict[str, str]:
