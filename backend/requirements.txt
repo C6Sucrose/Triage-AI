@@ -11,6 +11,7 @@ cryptography==45.0.5
 
 # --- AI & Vector DB Packages (Unpinned to prevent conflicts) ---
 langchain
+langchain-groq
 langchain-huggingface
 langchain-text-splitters
 langchain-community
