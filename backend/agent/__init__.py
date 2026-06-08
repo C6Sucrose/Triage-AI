@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 
 class GraphState(TypedDict):
@@ -7,3 +7,6 @@ class GraphState(TypedDict):
     original_subject: str
     raw_body: str
     scrubbed_body: str
+    category: Literal["bug", "billing", "general_inquiry", "feature_request"]
+    retrieved_context: str
+    draft_response: str
