@@ -15,5 +15,6 @@ langchain-huggingface
 langchain-text-splitters
 langchain-community
 langchain-chroma
+langgraph
 chromadb
 sentence-transformers
