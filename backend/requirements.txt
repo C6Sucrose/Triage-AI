@@ -5,10 +5,15 @@ python-dotenv==1.1.1
 email-validator==2.2.0
 supabase==2.15.0
 pypdf==5.6.0
-langchain==0.3.27
-langchain-huggingface==0.3.1
-langchain-text-splitters==0.3.11
-langchain-community==0.3.30
-langchain-chroma==1.1.0
-chromadb==1.5.9
-sentence-transformers==5.1.1
+python-multipart==0.0.20
+PyJWT==2.10.1
+cryptography==45.0.5
+
+# --- AI & Vector DB Packages (Unpinned to prevent conflicts) ---
+langchain
+langchain-huggingface
+langchain-text-splitters
+langchain-community
+langchain-chroma
+chromadb
+sentence-transformers
