@@ -11,7 +11,7 @@ from utils.rag_engine import retrieve_context
 
 
 class TicketCategory(BaseModel):
-    """Classify a support email into one of four routing categories.
+    """Classify a support email into one of five routing categories.
 
     Categories:
         bug:            The user reports a crash, error, malfunction, or broken
@@ -24,9 +24,12 @@ class TicketCategory(BaseModel):
                         general curiosity.
         feature_request: The user suggests a new capability, enhancement, or
                         improvement they would like added to the product.
+        spam:           The email is promotional, malicious, phishing, or
+                        otherwise irrelevant — it should not be processed
+                        further.
     """
 
-    category: Literal["bug", "billing", "general_inquiry", "feature_request"] = Field(
+    category: Literal["bug", "billing", "general_inquiry", "feature_request", "spam"] = Field(
         description="The support category assigned to this email."
     )
 
