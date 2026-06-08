@@ -1,12 +1,15 @@
 """RAG ingestion and retrieval engine for Triage AI.
 
-Provides two public functions:
+Provides three public functions:
 
 - ``ingest_document`` – splits raw text into chunks, embeds them with a
   local HuggingFace model, and stores the resulting vectors in a ChromaDB
   collection with tenant-scoped metadata.
-- ``test_retrieval`` – performs a similarity search against ChromaDB, filtered
-  by ``tenant_id`` to guarantee multi-tenant data isolation.
+- ``retrieve_context`` – performs a similarity search against ChromaDB,
+  filtered by ``tenant_id``, and returns concatenated page content from the
+  top-k matched chunks for use by the drafter node.
+- ``test_retrieval`` – performs a single-chunk similarity search for
+  quick validation / debugging.
 """
 
 import logging
@@ -81,6 +84,53 @@ def ingest_document(text: str, tenant_id: str, filename: str) -> int:
         filename,
     )
     return len(chunks)
+
+
+def retrieve_context(query: str, tenant_id: str, k: int = 3) -> str:
+    """Retrieve the top-k most relevant chunks for a query, scoped to a tenant.
+
+    Args:
+        query: The natural-language search query.
+        tenant_id: Tenant identifier used as a ChromaDB metadata filter to
+            guarantee data isolation between tenants.
+        k: Number of top chunks to retrieve. Defaults to 3.
+
+    Returns:
+        The concatenated page content of all matched chunks, separated by
+        double newlines.  Returns an empty string when no results are found.
+
+    Raises:
+        EnvironmentError: If ``CHROMA_DB_URL`` is not configured.
+    """
+    vectorstore: Chroma = Chroma(
+        collection_name=_COLLECTION_NAME,
+        embedding_function=_EMBEDDING_MODEL,
+        client=_chroma_client(),
+    )
+
+    results: list[Document] = vectorstore.similarity_search(
+        query=query,
+        k=k,
+        filter={"tenant_id": tenant_id},
+    )
+
+    if not results:
+        logger.warning(
+            "No retrieval results for query='%s', tenant=%s",
+            query,
+            tenant_id,
+        )
+        return ""
+
+    context: str = "\n\n".join(doc.page_content for doc in results)
+    logger.info(
+        "Retrieved %d chunks for query='%s', tenant=%s — total length=%d",
+        len(results),
+        query,
+        tenant_id,
+        len(context),
+    )
+    return context
 
 
 def test_retrieval(query: str, tenant_id: str) -> str:

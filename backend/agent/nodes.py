@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from agent.state import GraphState
 from utils.pii_scrubber import scrub_pii
+from utils.rag_engine import retrieve_context
 
 
 class TicketCategory(BaseModel):
@@ -60,3 +61,52 @@ def scrub_pii_node(state: GraphState) -> dict:
 def categorize_email_node(state: GraphState) -> dict:
     result = _get_category_chain().invoke({"scrubbed_body": state["scrubbed_body"]})
     return {"category": result.category}
+
+
+# ── Drafter prompt ─────────────────────────────────────────────────
+
+_DRAFTER_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a helpful B2B support agent. "
+            "Draft a reply to the user's email using ONLY the provided "
+            "'Retrieved Context'. If the context does not contain the answer, "
+            "politely state that you are escalating the ticket to a human "
+            "agent. Do not hallucinate.",
+        ),
+        (
+            "human",
+            "Retrieved Context:\n{retrieved_context}\n\n"
+            "User Email:\n{scrubbed_body}",
+        ),
+    ]
+)
+
+
+@lru_cache(maxsize=1)
+def _get_drafter_chain():
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
+    return _DRAFTER_PROMPT | llm
+
+
+# ── Retriever node ─────────────────────────────────────────────────
+
+def retrieve_context_node(state: GraphState) -> dict:
+    context = retrieve_context(
+        query=state["scrubbed_body"],
+        tenant_id=state["tenant_id"],
+    )
+    return {"retrieved_context": context}
+
+
+# ── Drafter node ───────────────────────────────────────────────────
+
+def draft_response_node(state: GraphState) -> dict:
+    response = _get_drafter_chain().invoke(
+        {
+            "retrieved_context": state["retrieved_context"],
+            "scrubbed_body": state["scrubbed_body"],
+        },
+    )
+    return {"draft_response": response.content}
