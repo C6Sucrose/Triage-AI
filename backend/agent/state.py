@@ -7,6 +7,6 @@ class GraphState(TypedDict):
     original_subject: str
     raw_body: str
     scrubbed_body: str
-    category: Literal["bug", "billing", "general_inquiry", "feature_request"]
+    category: Literal["bug", "billing", "general_inquiry", "feature_request", "spam"]
     retrieved_context: str
     draft_response: str
