@@ -3313,6 +3313,7 @@ dependencies = [
     { name = "requests" },
     { name = "sentence-transformers" },
     { name = "supabase" },
+    { name = "tenacity" },
     { name = "uvicorn" },
 ]
 
@@ -3338,6 +3339,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.34.2" },
     { name = "sentence-transformers", specifier = ">=5.5.1" },
     { name = "supabase", specifier = "==2.15.0" },
+    { name = "tenacity", specifier = ">=9.1.2" },
     { name = "uvicorn", specifier = "==0.48.0" },
 ]
 
