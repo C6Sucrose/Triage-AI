@@ -3,27 +3,30 @@ version: '3.8'
 services:
   # 1. The Next.js Frontend
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     depends_on:
       - backend
-    env_file:                      
+    env_file:
       - ./frontend/.env.local
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://127.0.0.1:8080
 
   # 2. The FastAPI Backend
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
       - chromadb
+    env_file:
+      - ./frontend/.env.local   # provides NEXT_PUBLIC_SUPABASE_URL, CLERK_SECRET_KEY
+      - ./backend/.env          # provides SUPABASE_SERVICE_ROLE_KEY, CLERK_PEM_PUBLIC_KEY, INBOUND_WEBHOOK_API_KEY
     environment:
       - CHROMA_DB_URL=http://chromadb:8000
 

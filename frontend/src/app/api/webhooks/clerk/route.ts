@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAnonClient } from "@/lib/supabase/client";
 
 interface ClerkEmailAddress {
   id: string;
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
 try {
-    const supabase = createAdminClient();
+    const supabase = createAnonClient();
     const { error: insertError } = await supabase
       .from("users")
       .insert({ clerk_id: clerkId, email: primaryEmail });
