@@ -8,6 +8,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 from supabase import Client, create_client
+from fastapi.middleware.cors import CORSMiddleware
 
 from utils.pdf_parser import extract_text_from_pdf
 from utils.rag_engine import ingest_document
@@ -26,6 +27,17 @@ if CLERK_PEM_PUBLIC_KEY:
 logger = logging.getLogger("triage.backend")
 
 app = FastAPI(title="Triage AI Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Security ─────────
 
@@ -48,6 +60,13 @@ def verify_clerk_token(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
 ) -> str:
     """Decode a Clerk-issued JWT using the RS256 Public Key."""
+    if not CLERK_PEM_PUBLIC_KEY:
+        logger.error("CLERK_PEM_PUBLIC_KEY is not configured — cannot verify tokens")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server auth configuration missing",
+        )
+
     token = credentials.credentials
     try:
         payload = jwt.decode(
