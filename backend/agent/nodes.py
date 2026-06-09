@@ -1,14 +1,29 @@
+import logging
+import os
 from functools import lru_cache
 from typing import Literal
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
+from supabase import Client, create_client
 
 from agent.state import GraphState
 from utils.pii_scrubber import scrub_pii
 from utils.rag_engine import retrieve_context
 from utils.trello_client import create_trello_card
+
+logger = logging.getLogger("triage.backend.nodes")
+
+
+def _get_supabase_client() -> Client:
+    url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    if not url or not key:
+        raise RuntimeError(
+            "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
+        )
+    return create_client(url, key)
 
 
 class TicketCategory(BaseModel):
@@ -125,5 +140,40 @@ def create_ticket_node(state: GraphState) -> dict:
         f"**Original email:**\n{state['raw_body']}\n\n"
         f"**Drafted response:**\n{state['draft_response']}"
     )
-    card_url = create_trello_card(title=title, description=description)
-    return {"trello_card_url": card_url}
+    try:
+        card_url = create_trello_card(title=title, description=description)
+        return {"trello_card_url": card_url}
+    except Exception:
+        logger.exception("Failed to create Trello card for ticket")
+        return {"trello_card_url": ""}
+
+
+# ── Finalize node ────────────────────────────────────────────────────
+
+def finalize_ticket_node(state: GraphState) -> dict:
+    ticket_id = state.get("ticket_id")
+    if not ticket_id:
+        logger.warning("finalize_ticket_node called without ticket_id — skipping DB update")
+        return {}
+
+    category = state.get("category", "")
+    try:
+        supabase = _get_supabase_client()
+
+        if category == "spam":
+            supabase.table("tickets").update(
+                {"status": "spam", "category": category}
+            ).eq("id", ticket_id).execute()
+        else:
+            supabase.table("tickets").update(
+                {
+                    "status": "completed",
+                    "category": category,
+                    "drafted_reply": state.get("draft_response", ""),
+                    "external_ticket_url": state.get("trello_card_url", ""),
+                }
+            ).eq("id", ticket_id).execute()
+    except Exception:
+        logger.exception("Failed to finalize ticket_id=%s in Supabase", ticket_id)
+
+    return {}

@@ -3,14 +3,15 @@ import os
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-TRELLO_API_KEY = os.getenv("TRELLO_API_KEY")
-TRELLO_API_TOKEN = os.getenv("TRELLO_API_TOKEN")
 TRELLO_BASE_URL = "https://api.trello.com/1"
 BOARD_NAME = "Triage AI Tickets"
 
 
 def _auth_params() -> dict:
-    return {"key": TRELLO_API_KEY, "token": TRELLO_API_TOKEN}
+    return {
+        "key": os.getenv("TRELLO_API_KEY"),
+        "token": os.getenv("TRELLO_API_TOKEN"),
+    }
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
