@@ -11,3 +11,4 @@ class GraphState(TypedDict):
     retrieved_context: str
     draft_response: str
     trello_card_url: str
+    ticket_id: str
