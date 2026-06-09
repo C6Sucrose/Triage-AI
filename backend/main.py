@@ -10,6 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 from supabase import Client, create_client
 from fastapi.middleware.cors import CORSMiddleware
 
+from agent.graph import app as graph_app
 from utils.pdf_parser import extract_text_from_pdf
 from utils.rag_engine import ingest_document
 
@@ -44,13 +45,15 @@ app.add_middleware(
 api_key_header = HTTPBearer()
 
 
-def verify_api_key(api_key: str = Depends(api_key_header)) -> str:
-    if api_key != INBOUND_WEBHOOK_API_KEY:
+def verify_api_key(
+    credentials: HTTPAuthorizationCredentials = Depends(api_key_header),
+) -> str:
+    if credentials.credentials != INBOUND_WEBHOOK_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API key",
         )
-    return api_key
+    return credentials.credentials
 
 
 _bearer_scheme = HTTPBearer()
@@ -154,11 +157,38 @@ def process_inbound_email(payload: InboundEmailPayload) -> None:
         )
 
         if ticket_result.data:
+            ticket_id: str = ticket_result.data[0]["id"]
             logger.info(
-                "Ticket created for user_id=%s from %s",
+                "Ticket created for user_id=%s from %s (ticket_id=%s)",
                 user_id,
                 payload.sender_email,
+                ticket_id,
             )
+
+            initial_state = {
+                "tenant_id": payload.tenant_id,
+                "sender_email": payload.sender_email,
+                "original_subject": payload.original_subject,
+                "raw_body": payload.body_text,
+                "scrubbed_body": "",
+                "category": "",
+                "retrieved_context": "",
+                "draft_response": "",
+                "trello_card_url": "",
+                "ticket_id": ticket_id,
+            }
+
+            try:
+                graph_app.invoke(initial_state)
+                logger.info(
+                    "Graph completed for ticket_id=%s",
+                    ticket_id,
+                )
+            except Exception:
+                logger.exception(
+                    "Graph execution failed for ticket_id=%s",
+                    ticket_id,
+                )
     except Exception:
         logger.exception(
             "Failed to process inbound email for tenant_id=%s",
