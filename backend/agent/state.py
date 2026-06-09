@@ -10,3 +10,4 @@ class GraphState(TypedDict):
     category: Literal["bug", "billing", "general_inquiry", "feature_request", "spam"]
     retrieved_context: str
     draft_response: str
+    trello_card_url: str

@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from agent.state import GraphState
 from utils.pii_scrubber import scrub_pii
 from utils.rag_engine import retrieve_context
+from utils.trello_client import create_trello_card
 
 
 class TicketCategory(BaseModel):
@@ -113,3 +114,16 @@ def draft_response_node(state: GraphState) -> dict:
         },
     )
     return {"draft_response": response.content}
+
+
+# ── Ticket creation node ────────────────────────────────────────────
+
+def create_ticket_node(state: GraphState) -> dict:
+    title = f"[{state['category'].upper()}] {state['original_subject']}"
+    description = (
+        f"**Sender:** {state['sender_email']}\n\n"
+        f"**Original email:**\n{state['raw_body']}\n\n"
+        f"**Drafted response:**\n{state['draft_response']}"
+    )
+    card_url = create_trello_card(title=title, description=description)
+    return {"trello_card_url": card_url}
