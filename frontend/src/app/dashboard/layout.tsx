@@ -39,8 +39,7 @@ export default function DashboardLayout({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-slate-200 bg-white px-6 flex items-center justify-between">
-          <span className="text-sm text-slate-500">Credits: 10</span>
+        <header className="h-14 border-b border-slate-200 bg-white px-6 flex items-center">
         </header>
 
         <main className="flex-1 overflow-auto p-6">

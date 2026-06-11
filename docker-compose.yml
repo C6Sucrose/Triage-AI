@@ -1,19 +1,28 @@
-version: '3.8'
-
 services:
   # 1. The Next.js Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        - NEXT_PUBLIC_CLERK_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_URL}
+        - NEXT_PUBLIC_CLERK_SIGN_UP_URL=${NEXT_PUBLIC_CLERK_SIGN_UP_URL}
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - NEXT_PUBLIC_API_URL=http://localhost:8080
     ports:
       - "3000:3000"
     depends_on:
       - backend
     env_file:
       - ./frontend/.env.local
-    environment:
-      - NEXT_PUBLIC_API_URL=http://127.0.0.1:8080
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # 2. The FastAPI Backend
   backend:
@@ -29,17 +38,22 @@ services:
       - ./backend/.env          # provides SUPABASE_SERVICE_ROLE_KEY, CLERK_PEM_PUBLIC_KEY, INBOUND_WEBHOOK_API_KEY
     environment:
       - CHROMA_DB_URL=http://chromadb:8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # 3. The ChromaDB Vector Database
   chromadb:
     image: chromadb/chroma:latest
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - chroma_data:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
 
-# Define persistent storage so your AI vectors survive computer restarts
 volumes:
   chroma_data:

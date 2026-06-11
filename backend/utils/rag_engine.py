@@ -1,19 +1,6 @@
-"""RAG ingestion and retrieval engine for Triage AI.
-
-Provides three public functions:
-
-- ``ingest_document`` – splits raw text into chunks, embeds them with a
-  local HuggingFace model, and stores the resulting vectors in a ChromaDB
-  collection with tenant-scoped metadata.
-- ``retrieve_context`` – performs a similarity search against ChromaDB,
-  filtered by ``tenant_id``, and returns concatenated page content from the
-  top-k matched chunks for use by the drafter node.
-- ``test_retrieval`` – performs a single-chunk similarity search for
-  quick validation / debugging.
-"""
-
 import logging
 import os
+from functools import lru_cache
 
 import chromadb
 from langchain_chroma import Chroma
@@ -25,14 +12,18 @@ logger = logging.getLogger("triage.backend.rag_engine")
 
 _COLLECTION_NAME: str = "triage_kb"
 
-_EMBEDDING_MODEL: HuggingFaceEmbeddings = HuggingFaceEmbeddings(
-    model_name="all-MiniLM-L6-v2",
-)
 
-_TEXT_SPLITTER: RecursiveCharacterTextSplitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200,
-)
+@lru_cache(maxsize=1)
+def _get_embedding_model() -> HuggingFaceEmbeddings:
+    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+
+@lru_cache(maxsize=1)
+def _get_text_splitter() -> RecursiveCharacterTextSplitter:
+    return RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+    )
 
 
 def _chroma_client() -> chromadb.HttpClient:
@@ -63,7 +54,7 @@ def ingest_document(text: str, tenant_id: str, filename: str) -> int:
         logger.warning("Empty text received for ingestion — nothing to store")
         return 0
 
-    chunks: list[str] = _TEXT_SPLITTER.split_text(text)
+    chunks: list[str] = _get_text_splitter().split_text(text)
     metadatas: list[dict[str, str]] = [
         {"tenant_id": tenant_id, "filename": filename}
         for _ in chunks
@@ -71,7 +62,7 @@ def ingest_document(text: str, tenant_id: str, filename: str) -> int:
 
     Chroma.from_texts(
         texts=chunks,
-        embedding=_EMBEDDING_MODEL,
+        embedding=_get_embedding_model(),
         metadatas=metadatas,
         collection_name=_COLLECTION_NAME,
         client=_chroma_client(),
@@ -104,7 +95,7 @@ def retrieve_context(query: str, tenant_id: str, k: int = 3) -> str:
     """
     vectorstore: Chroma = Chroma(
         collection_name=_COLLECTION_NAME,
-        embedding_function=_EMBEDDING_MODEL,
+        embedding_function=_get_embedding_model(),
         client=_chroma_client(),
     )
 
@@ -150,7 +141,7 @@ def test_retrieval(query: str, tenant_id: str) -> str:
     """
     vectorstore: Chroma = Chroma(
         collection_name=_COLLECTION_NAME,
-        embedding_function=_EMBEDDING_MODEL,
+        embedding_function=_get_embedding_model(),
         client=_chroma_client(),
     )
 

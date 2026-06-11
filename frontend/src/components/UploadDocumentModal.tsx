@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { UploadIcon, FileIcon, LoaderCircleIcon } from "lucide-react";
 import {
   Dialog,
@@ -18,6 +19,7 @@ import { Label } from "@/components/ui/label";
 
 export default function UploadDocumentModal() {
   const { getToken } = useAuth();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
@@ -57,6 +59,7 @@ export default function UploadDocumentModal() {
         type: "success",
         text: `"${data.filename}" uploaded — ${data.chunks_ingested} chunks ingested.`,
       });
+      router.refresh();
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {

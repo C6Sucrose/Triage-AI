@@ -1,6 +1,10 @@
-import { createClient as _createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as _createSupabaseClient, SupabaseClient } from "@supabase/supabase-js";
 
-export function createAnonClient() {
+let _cachedClient: SupabaseClient | null = null;
+
+export function createAnonClient(): SupabaseClient {
+  if (_cachedClient) return _cachedClient;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -10,7 +14,9 @@ export function createAnonClient() {
     );
   }
 
-  return _createSupabaseClient(supabaseUrl, anonKey, {
+  _cachedClient = _createSupabaseClient(supabaseUrl, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  return _cachedClient;
 }
