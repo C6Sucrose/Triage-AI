@@ -11,7 +11,8 @@
 
 ### 🚀 See it in Action
 
-> *[quick 5-second GIF here showing a dummy email being sent, and the Trello card appearing with a drafted response]*
+<img width="1155" height="936" alt="Animation" src="https://github.com/user-attachments/assets/d774ecac-949f-4c9a-938d-65bc26f10ad4" />
+
 
 ## 📖 Overview
 
@@ -33,21 +34,21 @@ Built with a **Bring Your Own Cloud (BYOC)** philosophy, the entire stack is ful
 ## 🏗️ Architecture
 
 ```
-  ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-  │   Frontend    │   │    Backend     │   │    ChromaDB    │
-  │   Next.js 14  │──▶│    FastAPI     │──▶│   Vector DB    │
-  │   Port 3000   │   │   Port 8080    │   │   Port 8000    │
-  │  Clerk Auth   │   │  LangGraph +   │   │  Tenant-scoped │
-  │  Supabase     │   │  ChatGroq      │   │  Metadata      │
-  │  (anon key)   │   │                │   │  Filtering     │
-  └───────────────┘   └───────┬───────┘   └───────────────┘
-                              │
-                       ┌──────┴──────┐
-                       │   Supabase   │
-                       │   (Cloud)    │
-                       │  Postgres +  │
-                       │   Storage    │
-                       └─────────────┘
+  ┌───────────────┐     ┌───────────────┐      ┌───────────────┐
+  │   Frontend     │    │    Backend     │     │    ChromaDB    │
+  │   Next.js 14   │──▶ │    FastAPI     │ ──▶│   Vector DB    │
+  │   Port 3000    │    │   Port 8080    │     │   Port 8000    │
+  │  Clerk Auth    │    │  LangGraph +   │     │  Tenant-scoped │
+  │  Supabase      │    │  ChatGroq      │     │  Metadata      │
+  │  (anon key)    │    │                │     │  Filtering     │
+  └───────────────┘     └───────┬───────┘      └───────────────┘
+                                │
+                         ┌──────┴──────┐
+                         │   Supabase   │
+                         │   (Cloud)    │
+                         │  Postgres +  │
+                         │   Storage    │
+                         └─────────────┘
 ```
 
 ### Tech Stack
@@ -71,11 +72,11 @@ Inbound Email → Webhook (202 Accepted)
                     │
                     ▼ (Background Task)
               ┌───────────┐
-              │    Scrub   │  Redact PII (emails, phones, credit cards)
+              │    Scrub  │  Redact PII (emails, phones, credit cards)
               └─────┬─────┘
                     ▼
               ┌───────────┐
-              │ Categorize │  ChatGroq → Bug / Billing / Feature / General / Spam
+              │ Categorize│  ChatGroq → Bug / Billing / Feature / General / Spam
               └─────┬─────┘
                     ▼
               ┌─ Conditional Route ─┐
@@ -83,7 +84,7 @@ Inbound Email → Webhook (202 Accepted)
          Spam?──YES──▶ Finalize     │
               │      (status=spam)  │
               │                     │
-              NO──────▶ Retrieve    │
+             NO──────▶ Retrieve     │
               │    (ChromaDB RAG)   │
               ▼                     │
            Draft                    │
@@ -110,19 +111,19 @@ PDF Upload (Clerk JWT auth)
       │
       ▼
   ┌────────────┐
-  │ Storage     │  Raw PDF → Supabase `raw_documents` bucket (best-effort)
+  │ Storage    │  Raw PDF → Supabase `raw_documents` bucket (best-effort)
   └─────┬──────┘
         ▼
   ┌────────────┐
-  │ Extract     │  pypdf → plain text (graceful on encrypted/corrupted files)
+  │ Extract    │  pypdf → plain text (graceful on encrypted/corrupted files)
   └─────┬──────┘
         ▼
   ┌────────────┐
-  │ Ingest      │  Chunk → Embed → ChromaDB (tenant-scoped metadata)
+  │ Ingest     │  Chunk → Embed → ChromaDB (tenant-scoped metadata)
   └─────┬──────┘
         ▼
   ┌────────────┐
-  │ Catalog     │  Metadata row → Supabase `documents` table (best-effort)
+  │ Catalog    │  Metadata row → Supabase `documents` table (best-effort)
   └────────────┘
 ```
 
@@ -236,6 +237,7 @@ All Dockerfiles use multi-stage builds with non-root users for minimal, secure p
 - [x] LangGraph state machine (PII scrub → categorize → retrieve → draft → execute → finalize)
 - [x] Trello API action execution with retry and graceful degradation
 - [x] Document upload pipeline with Clerk JWT auth and resilience-first design
+- [ ] Guard Rails and Test Suites in Github Actions
 
 ### V2 — Next Steps
 
