@@ -17,7 +17,12 @@ PHONE_PATTERN = re.compile(
     r")"
 )
 
-PATTERNS: list[re.Pattern[str]] = [CC_PATTERN, PHONE_PATTERN]
+# Email addresses: standard email format
+EMAIL_PATTERN = re.compile(
+    r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+)
+
+PATTERNS: list[re.Pattern[str]] = [CC_PATTERN, PHONE_PATTERN, EMAIL_PATTERN]
 
 
 def _is_credit_card_match(text: str) -> bool:
@@ -37,5 +42,8 @@ def scrub_pii(text: str) -> str:
 
     # Phone numbers
     result = PHONE_PATTERN.sub(REDACTED, result)
+
+    # Email addresses
+    result = EMAIL_PATTERN.sub(REDACTED, result)
 
     return result

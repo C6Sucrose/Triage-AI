@@ -1,7 +1,7 @@
 # ⚡ Triage AI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)](https://www.docker.com/)
 
@@ -34,8 +34,8 @@ Built with a focus on **Bring Your Own Cloud (BYOC)**, it is fully containerized
 
 ### Tech Stack
 * **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn/UI
-* **Backend:** Python 3.11, FastAPI, Pydantic V2
-* **AI Engine:** LangGraph, LangChain, OpenAI (`gpt-4o-mini`, `text-embedding-3-small`)
+* **Backend:** Python 3.12, FastAPI, Pydantic V2
+* **AI Engine:** LangGraph, LangChain, ChatGroq (`llama-3.3-70b-versatile`), HuggingFace (`all-MiniLM-L6-v2` local embeddings)
 * **Database & State:** Supabase (PostgreSQL 15), ChromaDB
 * **Infrastructure:** Docker, Docker Compose, GitHub Actions (CI/CD)
 
@@ -49,7 +49,7 @@ Get the entire stack (UI, API, and Vector DB) running locally in under 5 minutes
 * [Docker](https://www.docker.com/products/docker-desktop/) & Docker Compose
 * [Supabase Account](https://supabase.com/) (Free Tier)
 * [Clerk Account](https://clerk.com/) (Free Tier)
-* OpenAI API Key
+* [Groq API Key](https://console.groq.com/) (Free Tier)
 
 ### 1. Clone the Repository
 ```bash
@@ -89,13 +89,14 @@ docker-compose up --build
 
 | Variable | Description |
 | --- | --- |
-| `OPENAI_API_KEY` | Your OpenAI API key for LLM and Embeddings. |
-| `SUPABASE_URL` | Your Supabase Project URL. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key (Keep this secret!). |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key (backend bypasses RLS). Keep secret!). |
+| `CLERK_SECRET_KEY` | Clerk Backend Secret Key. |
+| `CLERK_PEM_PUBLIC_KEY` | RS256 Public Key for Clerk JWT verification. |
+| `INBOUND_WEBHOOK_API_KEY` | Shared secret for inbound email webhook auth. |
+| `CHROMA_DB_URL` | ChromaDB URL (`http://localhost:8000` locally, `http://chromadb:8000` in Docker). |
 | `TRELLO_API_KEY` | (Optional) API Key for Trello integration. |
 | `TRELLO_TOKEN` | (Optional) Token for Trello integration. |
-| `LANGCHAIN_TRACING_V2` | Set to `true` to enable LangSmith observability. |
-| `LANGCHAIN_API_KEY` | Your LangSmith API Key. |
 
 ### Frontend (`frontend/.env.local`)
 
@@ -103,7 +104,10 @@ docker-compose up --build
 | --- | --- |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Auth Frontend Key. |
 | `CLERK_SECRET_KEY` | Clerk Auth Backend Secret. |
-| `NEXT_PUBLIC_API_URL` | Set to `http://localhost:8080/api/v1` locally. |
+| `WEBHOOK_SECRET` | Svix secret for Clerk webhook signature verification. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon Key (RLS-enforced). No service role key in frontend). |
+| `NEXT_PUBLIC_API_URL` | Backend API URL (`http://127.0.0.1:8080` locally). |
 
 ---
 
@@ -111,10 +115,10 @@ docker-compose up --build
 
 * [x] Base PostgreSQL/Supabase Schema Initialization
 * [x] Next.js Dashboard & Clerk Auth Integration
-* [ ] FastAPI Webhook Ingestion & Pydantic Validation
-* [ ] PyPDF2 Extraction & ChromaDB Vectorization
-* [ ] LangGraph State Machine (Categorizer, Retriever, Drafter)
-* [ ] Linear/Trello API Action Execution
+* [x] FastAPI Webhook Ingestion & Pydantic Validation
+* [x] pypdf Extraction & ChromaDB Vectorization
+* [x] LangGraph State Machine (Categorizer, Retriever, Drafter)
+* [x] Trello API Action Execution
 
 ---
 

@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+import re
 
 import jwt
 from dotenv import load_dotenv
@@ -227,24 +228,37 @@ async def upload_document(
     try:
         file_bytes = await file.read()
         filename = file.filename or "unnamed.pdf"
+        # Sanitize filename for Supabase Storage (rejects non-ASCII chars)
+        safe_filename = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
         supabase = _get_supabase_client()
 
-        # Step A — Resilience Storage: upload to Supabase Storage
-        storage_path = f"{tenant_id}/{filename}"
-        supabase.storage.from_("raw_documents").upload(
-            path=storage_path,
-            file=file_bytes,
-            file_options={
-                "content-type": "application/pdf",
-                "upsert": "true"
-            }
-        )
+        # Step A — Resilience Storage: upload to Supabase Storage (best-effort)
+        # Supabase free tier has a 50MB per-object limit, so large files may fail.
+        # The core pipeline (extract → ingest) continues regardless.
+        storage_path = f"{tenant_id}/{safe_filename}"
+        try:
+            supabase.storage.from_("raw_documents").upload(
+                path=storage_path,
+                file=file_bytes,
+                file_options={
+                    "content-type": "application/pdf",
+                    "upsert": "true"
+                }
+            )
+        except Exception as storage_err:
+            logger.warning(
+                "Supabase Storage upload failed for tenant=%s, file=%s: %s. "
+                "Proceeding with extraction + ingestion regardless.",
+                tenant_id,
+                safe_filename,
+                storage_err,
+            )
 
         # Step B — Extraction: parse PDF text
         text = extract_text_from_pdf(file_bytes)
 
         # Step C — Ingestion: chunk + embed + store in ChromaDB
-        chunks_count = ingest_document(text, tenant_id, filename)
+        chunks_count = ingest_document(text, tenant_id, safe_filename)
 
         return {
             "status": "uploaded",

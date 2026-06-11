@@ -1,3 +1,5 @@
+# Keep in sync with pyproject.toml dependencies.
+# Pinned from uv.lock for reproducible Docker builds.
 email-validator==2.2.0
 fastapi==0.136.3
 pydantic==2.13.2
@@ -8,17 +10,16 @@ uvicorn==0.48.0
 python-multipart==0.0.20
 pyjwt==2.10.1
 cryptography==45.0.5
-requests>=2.34.2
-tenacity>=9.1.2
-dotenv>=0.9.9
+requests==2.34.2
+tenacity==9.1.2
 
-# --- AI & Vector DB Packages (Unpinned to prevent conflicts) ---
-langchain
-langchain-groq
-langchain-huggingface
-langchain-text-splitters
-langchain-community
-langchain-chroma
-langgraph
-chromadb
-sentence-transformers
+# --- AI & Vector DB Packages (Pinned from uv.lock) ---
+langchain==1.3.4
+langchain-groq==1.1.2
+langchain-huggingface==1.2.2
+langchain-text-splitters==1.1.2
+langchain-community==0.4.2
+langchain-chroma==1.1.0
+langgraph==1.2.4
+chromadb==1.5.9
+sentence-transformers==5.5.1
