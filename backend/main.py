@@ -1,4 +1,3 @@
-import io
 import logging
 import os
 import re
@@ -259,6 +258,36 @@ async def upload_document(
 
         # Step C — Ingestion: chunk + embed + store in ChromaDB
         chunks_count = ingest_document(text, tenant_id, safe_filename)
+
+        # Step D — Record: insert metadata into documents table
+        try:
+            user_result = (
+                supabase.table("users")
+                .select("id")
+                .eq("clerk_id", tenant_id)
+                .execute()
+            )
+            if user_result.data:
+                user_id = user_result.data[0]["id"]
+                supabase.table("documents").insert({
+                    "user_id": user_id,
+                    "filename": safe_filename,
+                    "chunks_ingested": chunks_count,
+                }).execute()
+                logger.info(
+                    "Document row created for tenant=%s, file=%s, chunks=%d",
+                    tenant_id, safe_filename, chunks_count,
+                )
+            else:
+                logger.warning(
+                    "No user found for clerk_id=%s — skipping documents table insert",
+                    tenant_id,
+                )
+        except Exception as doc_err:
+            logger.warning(
+                "documents table insert failed for tenant=%s, file=%s: %s",
+                tenant_id, safe_filename, doc_err,
+            )
 
         return {
             "status": "uploaded",

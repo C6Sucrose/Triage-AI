@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import UploadDocumentModal from "@/components/UploadDocumentModal";
+import AutoRefresh from "@/components/AutoRefresh";
 
 // ── Types ──────────────────────────────────
 
@@ -76,6 +77,7 @@ export default async function TicketBoardPage() {
 
   return (
     <div className="space-y-6">
+      <AutoRefresh intervalMs={30000} />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

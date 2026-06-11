@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/card";
 import UploadDocumentModal from "@/components/UploadDocumentModal";
 
-interface StoredFile {
+interface DocumentRow {
   id: string;
-  name: string;
+  filename: string;
+  chunks_ingested: number;
   created_at: string;
-  metadata: Record<string, unknown>;
 }
 
 export default async function KnowledgeBasePage() {
@@ -22,15 +22,14 @@ export default async function KnowledgeBasePage() {
 
   const supabase = createAnonClient();
 
-  const { data: files, error } = await supabase.storage
-    .from("raw_documents")
-    .list(userId, {
-      limit: 100,
-      sortBy: { column: "created_at", order: "desc" },
-    });
+  const { data: documents, error } = await supabase
+    .from("documents")
+    .select("id, filename, chunks_ingested, created_at, users!inner(clerk_id)")
+    .eq("users.clerk_id", userId)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Storage list error:", error.message);
+    console.error("Documents query error:", error.message);
   }
 
   return (
@@ -54,23 +53,23 @@ export default async function KnowledgeBasePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {!files || files.length === 0 ? (
+          {!documents || documents.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
               No documents uploaded yet. Upload a PDF to add context for the
               triage agent.
             </p>
           ) : (
             <ul className="space-y-2">
-              {(files as StoredFile[]).map((file) => (
+              {(documents as DocumentRow[]).map((doc) => (
                 <li
-                  key={file.id}
+                  key={doc.id}
                   className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2"
                 >
                   <span className="text-sm font-medium text-slate-700 truncate">
-                    {file.name}
+                    {doc.filename}
                   </span>
                   <span className="text-xs text-slate-500">
-                    {new Date(file.created_at).toLocaleDateString()}
+                    {doc.chunks_ingested} chunks · {new Date(doc.created_at).toLocaleDateString()}
                   </span>
                 </li>
               ))}
